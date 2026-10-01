@@ -1,0 +1,22 @@
+### Registar
+POST http://localhost:3001/autenticacao/registar
+Content-Type: application/json
+
+{
+  "nome": "André",
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+### Entrar
+POST http://localhost:3001/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+### Ver o meu perfil (cola o token recebido no registo ou no login)
+GET http://localhost:3001/autenticacao/eu
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmM4MGM4ZS1hY2M2LTQzMTYtYjEzYi00NmI2NzAzYzEyNmEiLCJlbWFpbCI6ImFuZHJlQGV4YW1wbGUuY29tIiwiaWF0IjoxNzkwODUzMzY1LCJleHAiOjE3OTA5Mzk3NjV9.LOiYPkSH8MPe9TGahfrh6SMJhw5ym9c_fbeBUADFOdk

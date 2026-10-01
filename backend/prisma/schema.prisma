@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ───────────── Enumerações ─────────────
+
+enum TipoMovimento {
+  RECEITA
+  DESPESA
+}
+
+enum MetodoPagamento {
+  CARTAO
+  TRANSFERENCIA
+  NUMERARIO
+  MBWAY
+  DEBITO_DIRETO
+  OUTRO
+}
+
+// ───────────── Modelos ─────────────
+
+model Utilizador {
+  id           String   @id @default(uuid()) @db.Uuid
+  nome         String
+  email        String   @unique
+  hashPassword String   @map("hash_password")
+  moeda        String   @default("EUR")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  categorias Categoria[]
+  movimentos Movimento[]
+  orcamentos Orcamento[]
+  objetivos  ObjetivoPoupanca[]
+
+  @@map("utilizadores")
+}
+
+model Categoria {
+  id           String  @id @default(uuid()) @db.Uuid
+  utilizadorId String  @map("utilizador_id") @db.Uuid
+  nome         String
+  icone        String?
+  cor          String?
+
+  utilizador Utilizador  @relation(fields: [utilizadorId], references: [id], onDelete: Cascade)
+  movimentos Movimento[]
+  orcamentos Orcamento[]
+
+  @@unique([utilizadorId, nome])
+  @@map("categorias")
+}
+
+model Movimento {
+  id              String          @id @default(uuid()) @db.Uuid
+  utilizadorId    String          @map("utilizador_id") @db.Uuid
+  categoriaId     String          @map("categoria_id") @db.Uuid
+  tipo            TipoMovimento
+  valorCentimos   Int             @map("valor_centimos") // sempre positivo; o sinal vem do tipo
+  data            DateTime        @db.Date
+  descricao       String
+  metodoPagamento MetodoPagamento @map("metodo_pagamento")
+  criadoEm        DateTime        @default(now()) @map("criado_em")
+  atualizadoEm    DateTime        @updatedAt @map("atualizado_em")
+
+  utilizador Utilizador @relation(fields: [utilizadorId], references: [id], onDelete: Cascade)
+  categoria  Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  @@index([utilizadorId, data])
+  @@index([utilizadorId, categoriaId])
+  @@map("movimentos")
+}
+
+model Orcamento {
+  id             String   @id @default(uuid()) @db.Uuid
+  utilizadorId   String   @map("utilizador_id") @db.Uuid
+  categoriaId    String   @map("categoria_id") @db.Uuid
+  limiteCentimos Int      @map("limite_centimos")
+  mes            DateTime @db.Date // guarda sempre o dia 1 do mês (ex.: 2026-10-01)
+  criadoEm       DateTime @default(now()) @map("criado_em")
+
+  utilizador Utilizador @relation(fields: [utilizadorId], references: [id], onDelete: Cascade)
+  categoria  Categoria  @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@unique([utilizadorId, categoriaId, mes])
+  @@map("orcamentos")
+}
+
+model ObjetivoPoupanca {
+  id           String    @id @default(uuid()) @db.Uuid
+  utilizadorId String    @map("utilizador_id") @db.Uuid
+  nome         String
+  metaCentimos Int       @map("meta_centimos")
+  dataLimite   DateTime? @map("data_limite") @db.Date
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+
+  utilizador   Utilizador     @relation(fields: [utilizadorId], references: [id], onDelete: Cascade)
+  contribuicoes Contribuicao[]
+
+  @@map("objetivos_poupanca")
+}
+
+model Contribuicao {
+  id            String   @id @default(uuid()) @db.Uuid
+  objetivoId    String   @map("objetivo_id") @db.Uuid
+  valorCentimos Int      @map("valor_centimos")
+  data          DateTime @db.Date
+  criadoEm      DateTime @default(now()) @map("criado_em")
+
+  objetivo ObjetivoPoupanca @relation(fields: [objetivoId], references: [id], onDelete: Cascade)
+
+  @@index([objetivoId])
+  @@map("contribuicoes")
+}

@@ -1,0 +1,16 @@
+services:
+  base_dados:
+    image: postgres:16
+    container_name: finantrack_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: finantrack
+      POSTGRES_PASSWORD: finantrack
+      POSTGRES_DB: finantrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data
+
+volumes:
+  dados_postgres:
