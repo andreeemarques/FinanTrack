@@ -1,0 +1,16 @@
+# dependências
+node_modules
+
+# build do Next.js
+.next
+out
+
+# variáveis de ambiente (segredos)
+.env*
+!.env.example
+
+# outros
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.DS_Store
