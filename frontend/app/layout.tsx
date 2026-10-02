@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import Fornecedores from '@/components/fornecedores'
 
 export const metadata: Metadata = {
   title: 'FinanTrack — Gestão financeira pessoal',
@@ -41,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="pt-PT">
       <body className="antialiased">
-        {children}
+        <Fornecedores>{children}</Fornecedores>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
