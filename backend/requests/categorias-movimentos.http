@@ -1,0 +1,69 @@
+@url = http://localhost:3001
+
+### Entrar (corre este primeiro: guarda o token para os outros pedidos)
+# @name entrar
+POST {{url}}/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+###
+@token = {{entrar.response.body.token}}
+
+### Listar categorias (copia o id de uma delas para a variável abaixo)
+GET {{url}}/categorias
+Authorization: Bearer {{token}}
+
+### Criar categoria
+POST {{url}}/categorias
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Viagens",
+  "cor": "#3b82f6"
+}
+
+###
+@categoriaId = 3edcb3c1-2acc-49d0-b0e9-e4f4e42a0cb2
+
+### Criar movimento
+POST {{url}}/movimentos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tipo": "DESPESA",
+  "valorCentimos": 5420,
+  "data": "2026-10-01",
+  "descricao": "Compras no supermercado",
+  "metodoPagamento": "CARTAO",
+  "categoriaId": "{{categoriaId}}"
+}
+
+### Listar movimentos (com filtros)
+GET {{url}}/movimentos?pagina=1&limite=10&tipo=DESPESA&pesquisa=super&de=2026-10-01&ate=2026-10-31
+Authorization: Bearer {{token}}
+
+###
+@movimentoId = 4c51eda9-0577-4f78-aaff-90c7a4096701
+
+### Obter um movimento
+GET {{url}}/movimentos/{{movimentoId}}
+Authorization: Bearer {{token}}
+
+### Atualizar um movimento
+PATCH {{url}}/movimentos/{{movimentoId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorCentimos": 6000
+}
+
+### Apagar um movimento
+DELETE {{url}}/movimentos/{{movimentoId}}
+Authorization: Bearer {{token}}

@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AutenticacaoModule } from './autenticacao/autenticacao.module';
+import { CategoriasModule } from './categorias/categorias.module';
+import { MovimentosModule } from './movimentos/movimentos.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -10,6 +12,8 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     AutenticacaoModule,
+    CategoriasModule,
+    MovimentosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
