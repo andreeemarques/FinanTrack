@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ArrowDownLeft, ArrowUpRight, BarChart3, Bell, CalendarDays, Car, ChevronDown,
   CircleDollarSign, CreditCard, Edit3, FileText, Home, LayoutDashboard, LogOut, Menu,
@@ -11,7 +12,6 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
   Tooltip, XAxis, YAxis,
 } from 'recharts'
-import EcraAutenticacao from './ecra-autenticacao'
 import { useAutenticacao } from '@/lib/autenticacao'
 
 const transactions = [
@@ -60,15 +60,18 @@ function Definicoes() { const [dark, setDark] = useState(false); return <><Heade
 function TransactionModal({ onClose }: { onClose: () => void }) { return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4"><div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold text-slate-950">Adicionar movimento</h2><p className="mt-1 text-sm text-slate-500">Regista uma nova receita ou despesa.</p></div><button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100" aria-label="Fechar"><X className="size-5"/></button></div><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium text-slate-700">Tipo<select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal"><option>Despesa</option><option>Receita</option></select></label><label className="text-sm font-medium text-slate-700">Valor<input placeholder="0,00 €" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal"/></label><label className="text-sm font-medium text-slate-700 sm:col-span-2">Descrição<input placeholder="Ex.: Supermercado" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal"/></label><label className="text-sm font-medium text-slate-700">Categoria<select className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal"><option>Alimentação</option><option>Transportes</option><option>Habitação</option></select></label><label className="text-sm font-medium text-slate-700">Data<input type="date" className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal"/></label></div><div className="mt-6 flex justify-end gap-3"><button onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancelar</button><button onClick={onClose} className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white">Guardar movimento</button></div></div></div> }
 export default function FinanTrackApp() {
   const { utilizador, carregando } = useAutenticacao()
+  const router = useRouter()
+  useEffect(() => {
+    if (!carregando && !utilizador) router.replace('/entrar')
+  }, [carregando, utilizador, router])
   const [page, setPage] = useState<Page>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [modal, setModal] = useState(false)
   const content = useMemo(() => ({ dashboard: <Dashboard setPage={setPage}/>, movimentos: <Movimentos openModal={() => setModal(true)}/>, orcamento: <Orcamento/>, poupancas: <Poupancas/>, relatorios: <Relatorios/>, definicoes: <Definicoes/> }[page]), [page])
 
-  if (carregando) {
+  if (carregando || !utilizador) {
     return <div className="flex min-h-screen items-center justify-center text-sm text-slate-400">A carregar...</div>
   }
-  if (!utilizador) return <EcraAutenticacao />
 
   return <div className="min-h-screen bg-[#f8fafc] text-slate-900"><Sidebar page={page} setPage={setPage} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}/>{mobileOpen && <button className="fixed inset-0 z-30 bg-slate-950/20 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"/>}<main className="min-h-screen lg:pl-64"><div className="mx-auto max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10">{content}</div></main>{modal && <TransactionModal onClose={() => setModal(false)}/>}</div>
 }
