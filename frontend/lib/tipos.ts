@@ -68,3 +68,24 @@ export interface ResumoOrcamentos {
   totais: { limiteCentimos: number; gastoCentimos: number; disponivelCentimos: number }
   orcamentos: ItemOrcamento[]
 }
+
+export interface ObjetivoPoupanca {
+  id: string
+  nome: string
+  metaCentimos: number
+  dataLimite: string | null // AAAA-MM-DD
+  poupadoCentimos: number
+  concluido: boolean
+  previsaoConclusao: string | null // AAAA-MM-DD
+}
+
+export interface ResumoObjetivos {
+  totais: { poupadoCentimos: number; metaCentimos: number; poupadoEsteMesCentimos: number }
+  objetivos: ObjetivoPoupanca[]
+}
+
+export interface Contribuicao {
+  id: string
+  valorCentimos: number
+  data: string // AAAA-MM-DD
+}
