@@ -6,6 +6,7 @@ import { AutenticacaoModule } from './autenticacao/autenticacao.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { MovimentosModule } from './movimentos/movimentos.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { OrcamentosModule } from './orcamentos/orcamentos.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AutenticacaoModule,
     CategoriasModule,
     MovimentosModule,
+    OrcamentosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

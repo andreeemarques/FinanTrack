@@ -31,7 +31,10 @@ export function useGuardarMovimento() {
       id
         ? pedido<Movimento>(`/movimentos/${id}`, { metodo: 'PATCH', corpo: dados })
         : pedido<Movimento>('/movimentos', { metodo: 'POST', corpo: dados }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['movimentos'] }),
+    onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['movimentos'] })
+          queryClient.invalidateQueries({ queryKey: ['orcamentos'] })
+        },
   })
 }
 
@@ -39,6 +42,9 @@ export function useApagarMovimento() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => pedido<void>(`/movimentos/${id}`, { metodo: 'DELETE' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['movimentos'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] })
+      queryClient.invalidateQueries({ queryKey: ['orcamentos'] })
+    },
   })
 }

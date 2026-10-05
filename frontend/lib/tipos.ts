@@ -54,3 +54,17 @@ export interface RespostaPaginada<T> {
   dados: T[]
   meta: { pagina: number; limite: number; total: number; totalPaginas: number }
 }
+
+export interface ItemOrcamento {
+  id: string
+  categoria: Categoria
+  limiteCentimos: number
+  gastoCentimos: number
+  restanteCentimos: number // negativo se ultrapassou o limite
+}
+
+export interface ResumoOrcamentos {
+  mes: string // AAAA-MM
+  totais: { limiteCentimos: number; gastoCentimos: number; disponivelCentimos: number }
+  orcamentos: ItemOrcamento[]
+}

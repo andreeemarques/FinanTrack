@@ -1,0 +1,48 @@
+@url = http://localhost:3001
+
+### Entrar (corre este primeiro)
+# @name entrar
+POST {{url}}/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+###
+@token = {{entrar.response.body.token}}
+@categoriaId = cd9d1cee-2702-458c-9155-fbac1354b78e
+@orcamentoId = 9bac85de-4d07-4ce1-8720-c7d9c95ec46f
+
+### Criar orçamento (500,00 € em outubro de 2026)
+POST {{url}}/orcamentos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "categoriaId": "{{categoriaId}}",
+  "limiteCentimos": 50000,
+  "mes": "2026-10"
+}
+
+### Listar os orçamentos do mês atual
+GET {{url}}/orcamentos
+Authorization: Bearer {{token}}
+
+### Listar um mês específico
+GET {{url}}/orcamentos?mes=2026-10
+Authorization: Bearer {{token}}
+
+### Alterar o limite
+PATCH {{url}}/orcamentos/{{orcamentoId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "limiteCentimos": 60000
+}
+
+### Apagar
+DELETE {{url}}/orcamentos/{{orcamentoId}}
+Authorization: Bearer {{token}}
