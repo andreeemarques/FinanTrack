@@ -1,0 +1,72 @@
+@url = http://localhost:3001
+
+### Entrar (corre este primeiro)
+# @name entrar
+POST {{url}}/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+###
+@token = {{entrar.response.body.token}}
+@objetivoId = ab41167e-3ab8-45d9-9cae-1fa3ec627b4a
+@contribuicaoId = f925f511-ee81-4750-914f-b678ed671b3b
+
+### Criar objetivo (2000,00 €, com data limite)
+POST {{url}}/objetivos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Novo PC",
+  "metaCentimos": 200000,
+  "dataLimite": "2027-03-15"
+}
+
+### Listar objetivos
+GET {{url}}/objetivos
+Authorization: Bearer {{token}}
+
+### Adicionar 250,00 €
+POST {{url}}/objetivos/{{objetivoId}}/contribuicoes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorCentimos": 25000
+}
+
+### Adicionar uma contribuição com data antiga
+POST {{url}}/objetivos/{{objetivoId}}/contribuicoes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "valorCentimos": 25000,
+  "data": "2026-07-10"
+}
+
+### Histórico de contribuições
+GET {{url}}/objetivos/{{objetivoId}}/contribuicoes
+Authorization: Bearer {{token}}
+
+### Remover uma contribuição
+DELETE {{url}}/objetivos/{{objetivoId}}/contribuicoes/{{contribuicaoId}}
+Authorization: Bearer {{token}}
+
+### Editar o objetivo (e remover a data limite)
+PATCH {{url}}/objetivos/{{objetivoId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Novo PC gaming",
+  "dataLimite": null
+}
+
+### Apagar o objetivo
+DELETE {{url}}/objetivos/{{objetivoId}}
+Authorization: Bearer {{token}}

@@ -7,6 +7,7 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { MovimentosModule } from './movimentos/movimentos.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { OrcamentosModule } from './orcamentos/orcamentos.module';
+import { ObjetivosModule } from './objetivos/objetivos.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { OrcamentosModule } from './orcamentos/orcamentos.module';
     CategoriasModule,
     MovimentosModule,
     OrcamentosModule,
+    ObjetivosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
