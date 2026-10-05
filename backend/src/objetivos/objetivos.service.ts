@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { inicioDoMes, mesAtual } from '../comum/mes';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { inicioDoMes, mesAtual, inicioDoMesSeguinte } from '../comum/mes';
 import type { Contribuicao, ObjetivoPoupanca } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AtualizarObjetivoDto } from './dto/atualizar-objetivo.dto';
@@ -61,7 +61,10 @@ export class ObjetivosService {
     const agregados = await this.agregar(ids);
 
     const esteMes = await this.prisma.contribuicao.aggregate({
-      where: { objetivoId: { in: ids }, data: { gte: inicioDoMes(mesAtual()) } },
+        where: {
+            objetivoId: { in: ids },
+            data: { gte: inicioDoMes(mesAtual()), lt: inicioDoMesSeguinte(mesAtual()) },
+        },
       _sum: { valorCentimos: true },
     });
 
@@ -79,6 +82,9 @@ export class ObjetivosService {
   }
 
   async criar(utilizadorId: string, dto: CriarObjetivoDto) {
+    if (dto.dataLimite && dto.dataLimite < paraData(new Date())) {
+      throw new BadRequestException('A data limite não pode ser anterior a hoje.');
+    }
     const objetivo = await this.prisma.objetivoPoupanca.create({
       data: {
         utilizadorId,
