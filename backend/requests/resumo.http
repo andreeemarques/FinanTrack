@@ -1,0 +1,30 @@
+@url = http://localhost:3001
+
+### Entrar (corre este primeiro)
+# @name entrar
+POST {{url}}/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "andre@example.com",
+  "password": "umaPasswordForte123"
+}
+
+###
+@token = {{entrar.response.body.token}}
+
+### Dashboard do mês atual
+GET {{url}}/resumo/dashboard
+Authorization: Bearer {{token}}
+
+### Dashboard de um mês específico
+GET {{url}}/resumo/dashboard?mes=2026-09
+Authorization: Bearer {{token}}
+
+### Relatórios: últimos 6 meses
+GET {{url}}/resumo/relatorios
+Authorization: Bearer {{token}}
+
+### Relatórios: este ano
+GET {{url}}/resumo/relatorios?periodo=ano
+Authorization: Bearer {{token}}

@@ -8,6 +8,7 @@ import { MovimentosModule } from './movimentos/movimentos.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { OrcamentosModule } from './orcamentos/orcamentos.module';
 import { ObjetivosModule } from './objetivos/objetivos.module';
+import { ResumoModule } from './resumo/resumo.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ObjetivosModule } from './objetivos/objetivos.module';
     MovimentosModule,
     OrcamentosModule,
     ObjetivosModule,
+    ResumoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
