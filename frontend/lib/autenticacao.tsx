@@ -17,6 +17,7 @@ interface ContextoAutenticacao {
   entrar: (email: string, password: string) => Promise<void>
   registar: (nome: string, email: string, password: string) => Promise<void>
   sair: () => void
+  atualizarUtilizador: (utilizador: Utilizador) => void
 }
 
 const Contexto = createContext<ContextoAutenticacao | null>(null)
@@ -86,7 +87,7 @@ export function AutenticacaoProvider({ children }: { children: React.ReactNode }
   }, [queryClient])
 
   const valor = useMemo(
-    () => ({ utilizador, carregando, entrar, registar, sair }),
+    () => ({ utilizador, carregando, entrar, registar, sair, atualizarUtilizador: setUtilizador }),
     [utilizador, carregando, entrar, registar, sair],
   )
 
