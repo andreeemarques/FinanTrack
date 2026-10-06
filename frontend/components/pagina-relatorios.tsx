@@ -10,6 +10,9 @@ import { Card, Estatistica, Header } from './ui-comum'
 
 // Descarrega os dados do relatório em CSV (separador ";" e UTF-8 com BOM, para abrir bem no Excel)
 function exportarCsv(relatorio: RelatoriosResumo) {
+  const totalReceitas = relatorio.mensal.reduce((soma, m) => soma + m.receitasCentimos, 0)
+  const totalDespesas = relatorio.mensal.reduce((soma, m) => soma + m.despesasCentimos, 0)
+
   const linhas = [
     ['Mês', 'Receitas (€)', 'Despesas (€)', 'Saldo (€)'],
     ...relatorio.mensal.map((m) => [
@@ -18,7 +21,14 @@ function exportarCsv(relatorio: RelatoriosResumo) {
       centimosParaTexto(m.despesasCentimos),
       centimosParaTexto(m.receitasCentimos - m.despesasCentimos),
     ]),
+    [
+      'Total',
+      centimosParaTexto(totalReceitas),
+      centimosParaTexto(totalDespesas),
+      centimosParaTexto(totalReceitas - totalDespesas),
+    ],
   ]
+
   const csv = '\uFEFF' + linhas.map((linha) => linha.join(';')).join('\r\n')
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   const ligacao = document.createElement('a')
