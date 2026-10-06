@@ -1,0 +1,84 @@
+@url = http://localhost:3001
+
+### Registar uma conta de teste
+# @name registar
+POST {{url}}/autenticacao/registar
+Content-Type: application/json
+
+{
+  "nome": "Conta Teste",
+  "email": "teste@example.com",
+  "password": "passwordInicial1"
+}
+
+###
+@token = {{registar.response.body.token}}
+
+### Ver o perfil
+GET {{url}}/autenticacao/eu
+Authorization: Bearer {{token}}
+
+### Alterar só o nome (não pede password)
+PATCH {{url}}/autenticacao/eu
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Conta Teste Alterada"
+}
+
+### Alterar o email SEM password (deve dar 400)
+PATCH {{url}}/autenticacao/eu
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "email": "novo@example.com"
+}
+
+### Alterar o email com a password
+PATCH {{url}}/autenticacao/eu
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "email": "novo@example.com",
+  "passwordAtual": "passwordInicial1"
+}
+
+### Alterar a password
+POST {{url}}/autenticacao/alterar-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "passwordAtual": "passwordInicial1",
+  "novaPassword": "passwordNova123"
+}
+
+### Entrar com o email e a password novos
+POST {{url}}/autenticacao/entrar
+Content-Type: application/json
+
+{
+  "email": "novo@example.com",
+  "password": "passwordNova123"
+}
+
+### Apagar a conta com a password errada (deve dar 400)
+POST {{url}}/autenticacao/apagar-conta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "password": "errada"
+}
+
+### Apagar a conta
+POST {{url}}/autenticacao/apagar-conta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "password": "passwordNova123"
+}
