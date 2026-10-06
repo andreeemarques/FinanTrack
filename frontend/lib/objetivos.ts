@@ -25,7 +25,10 @@ export function useContribuicoes(objetivoId: string) {
 // Todas as chaves começam por 'objetivos', por isso uma só invalidação atualiza a lista e os históricos
 function useInvalidarObjetivos() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: ['objetivos'] })
+  return () => {
+    queryClient.invalidateQueries({ queryKey: ['objetivos'] })
+    queryClient.invalidateQueries({ queryKey: ['resumo'] }) // o "poupado" do Dashboard vem das contribuições
+  }
 }
 
 // Cria (sem id) ou edita (com id)

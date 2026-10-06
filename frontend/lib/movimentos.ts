@@ -34,6 +34,7 @@ export function useGuardarMovimento() {
     onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['movimentos'] })
           queryClient.invalidateQueries({ queryKey: ['orcamentos'] })
+          queryClient.invalidateQueries({ queryKey: ['resumo'] })
         },
   })
 }
@@ -45,6 +46,7 @@ export function useApagarMovimento() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['movimentos'] })
       queryClient.invalidateQueries({ queryKey: ['orcamentos'] })
+      queryClient.invalidateQueries({ queryKey: ['resumo'] })
     },
   })
 }

@@ -38,3 +38,16 @@ export function formatarMes(mes: string) {
   })
   return texto.charAt(0).toUpperCase() + texto.slice(1)
 }
+
+// 8.4 → "8,4%"
+export const formatarPercentagem = (valor: number) =>
+  `${valor.toLocaleString('pt-PT', { maximumFractionDigits: 1 })}%`
+
+// "2026-10" → "Out" (para os eixos dos gráficos)
+export function formatarMesCurto(mes: string) {
+  const [ano, numeroMes] = mes.split('-').map(Number)
+  const texto = new Date(ano, numeroMes - 1, 1)
+    .toLocaleDateString('pt-PT', { month: 'short' })
+    .replace('.', '')
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}

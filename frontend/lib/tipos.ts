@@ -89,3 +89,34 @@ export interface Contribuicao {
   valorCentimos: number
   data: string // AAAA-MM-DD
 }
+
+export interface DashboardResumo {
+  mes: string
+  saldoCentimos: number
+  receitasCentimos: number
+  despesasCentimos: number
+  poupadoCentimos: number
+  // variação face ao mês anterior, em %; null quando não há base de comparação
+  variacoes: {
+    saldo: number | null
+    receitas: number | null
+    despesas: number | null
+    poupado: number | null
+  }
+  evolucaoSaldo: { mes: string; saldoCentimos: number }[]
+  despesasPorCategoria: {
+    categoria: { id: string; nome: string; cor: string | null }
+    valorCentimos: number
+    percentagem: number
+  }[]
+}
+
+export type Periodo = '6meses' | 'ano'
+
+export interface RelatoriosResumo {
+  periodo: { de: string; ate: string; meses: number }
+  mensal: { mes: string; receitasCentimos: number; despesasCentimos: number }[]
+  mediaMensalDespesasCentimos: number
+  maiorCategoria: { nome: string; valorCentimos: number; percentagem: number } | null
+  taxaPoupancaPercentagem: number | null
+}
