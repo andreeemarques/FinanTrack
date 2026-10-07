@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare, hash } from 'bcryptjs';
+import { compare, hash, hashSync } from 'bcryptjs';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AlterarPasswordDto } from './dto/alterar-password.dto';
@@ -28,6 +28,16 @@ const CAMPOS_PUBLICOS = { id: true, nome: true, email: true, moeda: true };
 
 const MENSAGEM_EMAIL_REPETIDO = 'Já existe uma conta com este email.';
 
+// Usado no login quando o email não existe, para a resposta demorar o mesmo tempo
+// e não ser possível descobrir que emails estão registados
+const HASH_FALSO = hashSync('password-falsa-para-igualar-tempos', 12);
+
+interface DadosToken {
+  id: string;
+  email: string;
+  versaoToken: number;
+}
+
 @Injectable()
 export class AutenticacaoService {
   constructor(
@@ -45,17 +55,21 @@ export class AutenticacaoService {
 
     const hashPassword = await hash(dto.password, 12);
 
-    const utilizador = await this.prisma.utilizador.create({
+    const criado = await this.prisma.utilizador.create({
       data: {
         nome: dto.nome,
         email: dto.email,
         hashPassword,
         categorias: { create: CATEGORIAS_PADRAO.map((nome) => ({ nome })) },
       },
-      select: CAMPOS_PUBLICOS,
+      select: { ...CAMPOS_PUBLICOS, versaoToken: true },
     });
 
-    return { utilizador, token: await this.gerarToken(utilizador) };
+    const { versaoToken, ...utilizador } = criado;
+    return {
+      utilizador,
+      token: await this.gerarToken({ id: utilizador.id, email: utilizador.email, versaoToken }),
+    };
   }
 
   async entrar(dto: EntrarDto) {
@@ -63,18 +77,19 @@ export class AutenticacaoService {
       where: { email: dto.email },
     });
 
-    const valida = utilizador
-      ? await compare(dto.password, utilizador.hashPassword)
-      : false;
+    // A comparação corre sempre, mesmo que o email não exista
+    const igual = await compare(dto.password, utilizador?.hashPassword ?? HASH_FALSO);
 
     // mesma mensagem nos dois casos, para não revelar se o email existe
-    if (!utilizador || !valida) {
+    if (!utilizador || !igual) {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    const { id, nome, email, moeda } = utilizador;
-    const publico = { id, nome, email, moeda };
-    return { utilizador: publico, token: await this.gerarToken(publico) };
+    const { id, nome, email, moeda, versaoToken } = utilizador;
+    return {
+      utilizador: { id, nome, email, moeda },
+      token: await this.gerarToken({ id, email, versaoToken }),
+    };
   }
 
   async perfil(id: string) {
@@ -112,14 +127,22 @@ export class AutenticacaoService {
     }
   }
 
+  // Sobe a versão do token: as outras sessões deixam de funcionar.
+  // Devolve um token novo para a sessão atual continuar a funcionar.
   async alterarPassword(id: string, dto: AlterarPasswordDto) {
     const utilizador = await this.obterUtilizador(id);
     await this.confirmarPassword(utilizador.hashPassword, dto.passwordAtual);
 
-    await this.prisma.utilizador.update({
+    const atualizado = await this.prisma.utilizador.update({
       where: { id },
-      data: { hashPassword: await hash(dto.novaPassword, 12) },
+      data: {
+        hashPassword: await hash(dto.novaPassword, 12),
+        versaoToken: { increment: 1 },
+      },
+      select: { id: true, email: true, versaoToken: true },
     });
+
+    return { token: await this.gerarToken(atualizado) };
   }
 
   async apagarConta(id: string, dto: ApagarContaDto) {
@@ -148,7 +171,11 @@ export class AutenticacaoService {
     }
   }
 
-  private gerarToken(utilizador: { id: string; email: string }) {
-    return this.jwt.signAsync({ sub: utilizador.id, email: utilizador.email });
+  private gerarToken(utilizador: DadosToken) {
+    return this.jwt.signAsync({
+      sub: utilizador.id,
+      email: utilizador.email,
+      v: utilizador.versaoToken,
+    });
   }
 }

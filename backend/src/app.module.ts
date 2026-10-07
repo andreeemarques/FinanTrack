@@ -1,18 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AutenticacaoModule } from './autenticacao/autenticacao.module';
 import { CategoriasModule } from './categorias/categorias.module';
+import { validarAmbiente } from './config/validar-ambiente';
 import { MovimentosModule } from './movimentos/movimentos.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { OrcamentosModule } from './orcamentos/orcamentos.module';
 import { ObjetivosModule } from './objetivos/objetivos.module';
+import { OrcamentosModule } from './orcamentos/orcamentos.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { ResumoModule } from './resumo/resumo.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, validate: validarAmbiente }),
+    // Limite geral: 100 pedidos por minuto por IP (as rotas sensíveis têm um limite mais apertado)
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     PrismaModule,
     AutenticacaoModule,
     CategoriasModule,
@@ -22,6 +27,6 @@ import { ResumoModule } from './resumo/resumo.module';
     ResumoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
