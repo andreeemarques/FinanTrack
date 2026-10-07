@@ -56,6 +56,10 @@ export async function pedido<T>(caminho: string, opcoes: OpcoesPedido = {}): Pro
     window.dispatchEvent(new Event(EVENTO_SESSAO_EXPIRADA))
   }
 
+  if (resposta.status === 429) {
+    throw new ErroApi(429, 'Demasiados pedidos. Tenta novamente dentro de instantes.')
+  }
+
   if (!resposta.ok) {
     throw new ErroApi(resposta.status, await lerMensagemErro(resposta))
   }

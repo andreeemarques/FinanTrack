@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { pedido } from './api'
+import { guardarToken, pedido } from './api'
 import { useAutenticacao } from './autenticacao'
 import type { Utilizador } from './tipos'
 
@@ -15,7 +15,9 @@ export function useAtualizarPerfil() {
 export function useAlterarPassword() {
   return useMutation({
     mutationFn: (dados: { passwordAtual: string; novaPassword: string }) =>
-      pedido<void>('/autenticacao/alterar-password', { metodo: 'POST', corpo: dados }),
+      pedido<{ token: string }>('/autenticacao/alterar-password', { metodo: 'POST', corpo: dados }),
+    // As outras sessões ficam inválidas; esta continua com o token novo
+    onSuccess: (resposta) => guardarToken(resposta.token),
   })
 }
 
