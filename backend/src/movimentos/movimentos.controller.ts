@@ -19,8 +19,11 @@ import { AtualizarMovimentoDto } from './dto/atualizar-movimento.dto';
 import { CriarMovimentoDto } from './dto/criar-movimento.dto';
 import { ListarMovimentosDto } from './dto/listar-movimentos.dto';
 import { MovimentosService } from './movimentos.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('Movimentos')
+@ApiBearerAuth()
 @Controller('movimentos')
 export class MovimentosController {
   constructor(private readonly servico: MovimentosService) {}

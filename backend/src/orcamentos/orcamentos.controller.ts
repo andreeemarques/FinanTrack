@@ -19,8 +19,11 @@ import { AtualizarOrcamentoDto } from './dto/atualizar-orcamento.dto';
 import { ConsultarOrcamentosDto } from './dto/consultar-orcamentos.dto';
 import { CriarOrcamentoDto } from './dto/criar-orcamento.dto';
 import { OrcamentosService } from './orcamentos.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('Orçamentos')
+@ApiBearerAuth()
 @Controller('orcamentos')
 export class OrcamentosController {
   constructor(private readonly servico: OrcamentosService) {}

@@ -5,8 +5,11 @@ import { UtilizadorAtual } from '../autenticacao/utilizador-atual.decorator';
 import { ConsultarDashboardDto } from './dto/consultar-dashboard.dto';
 import { ConsultarRelatoriosDto } from './dto/consultar-relatorios.dto';
 import { ResumoService } from './resumo.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('Resumo')
+@ApiBearerAuth()
 @Controller('resumo')
 export class ResumoController {
   constructor(private readonly servico: ResumoService) {}

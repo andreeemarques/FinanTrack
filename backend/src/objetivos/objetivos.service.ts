@@ -5,9 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AtualizarObjetivoDto } from './dto/atualizar-objetivo.dto';
 import { CriarContribuicaoDto } from './dto/criar-contribuicao.dto';
 import { CriarObjetivoDto } from './dto/criar-objetivo.dto';
+import { preverConclusao } from './previsao';
 
-const MS_POR_MES = 30.44 * 24 * 60 * 60 * 1000;
-const MAX_MESES_PREVISAO = 1200; // 100 anos: acima disto não faz sentido prever
+
 
 const paraData = (data: Date) => data.toISOString().slice(0, 10);
 
@@ -22,25 +22,7 @@ interface Agregado {
   _min: { data: Date | null };
 }
 
-// Estima quando a meta será atingida, ao ritmo de poupança até agora
-function preverConclusao(
-  metaCentimos: number,
-  poupadoCentimos: number,
-  primeiraContribuicao: Date | null,
-  hoje: Date,
-): string | null {
-  if (poupadoCentimos >= metaCentimos || poupadoCentimos <= 0 || !primeiraContribuicao) {
-    return null;
-  }
-  const mesesDecorridos = Math.max(
-    1,
-    (hoje.getTime() - primeiraContribuicao.getTime()) / MS_POR_MES,
-  );
-  const ritmoMensal = poupadoCentimos / mesesDecorridos;
-  const mesesEmFalta = (metaCentimos - poupadoCentimos) / ritmoMensal;
-  if (mesesEmFalta > MAX_MESES_PREVISAO) return null;
-  return paraData(new Date(hoje.getTime() + mesesEmFalta * MS_POR_MES));
-}
+
 
 const paraContribuicao = (c: Contribuicao) => ({
   id: c.id,

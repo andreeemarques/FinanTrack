@@ -18,8 +18,11 @@ import { AtualizarObjetivoDto } from './dto/atualizar-objetivo.dto';
 import { CriarContribuicaoDto } from './dto/criar-contribuicao.dto';
 import { CriarObjetivoDto } from './dto/criar-objetivo.dto';
 import { ObjetivosService } from './objetivos.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('Objetivos de poupança')
+@ApiBearerAuth()
 @Controller('objetivos')
 export class ObjetivosController {
   constructor(private readonly servico: ObjetivosService) {}

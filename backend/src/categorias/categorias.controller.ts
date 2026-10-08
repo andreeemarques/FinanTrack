@@ -17,8 +17,11 @@ import { UtilizadorAtual } from '../autenticacao/utilizador-atual.decorator';
 import { CategoriasService } from './categorias.service';
 import { AtualizarCategoriaDto } from './dto/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dto/criar-categoria.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiTags('Categorias')
+@ApiBearerAuth()
 @Controller('categorias')
 export class CategoriasController {
   constructor(private readonly servico: CategoriasService) {}
