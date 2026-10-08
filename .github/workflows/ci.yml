@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Se chegar um push novo, cancela a execução anterior do mesmo ramo
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (build e testes)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql://finantrack:finantrack@localhost:5432/finantrack_test?schema=public
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: finantrack
+          POSTGRES_PASSWORD: finantrack
+          POSTGRES_DB: finantrack_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finantrack"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: backend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Gerar o cliente Prisma
+        run: pnpm exec prisma generate
+
+      - name: Compilar
+        run: pnpm build
+
+      - name: Testes unitários
+        run: pnpm test
+
+      - name: Testes de integração
+        run: pnpm test:e2e
+
+  frontend:
+    name: Frontend (build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      # O build do Next.js também verifica os tipos do TypeScript
+      - name: Compilar
+        run: pnpm build
+
+  auditoria:
+    name: Auditoria de dependências
+    runs-on: ubuntu-latest
+    # Só avisa, não bloqueia: uma vulnerabilidade numa dependência indireta
+    # não deve impedir o resto do trabalho. Podes apertar isto mais tarde.
+    continue-on-error: true
+    strategy:
+      matrix:
+        projeto: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.projeto }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${{ matrix.projeto }}/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Auditar as dependências de produção
+        run: pnpm audit --prod --audit-level=high
