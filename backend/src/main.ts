@@ -1,10 +1,17 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { configurarApp } from './configurar-app';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Em produção a API fica atrás do proxy da plataforma: confia nele para ver o IP real
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
+
   configurarApp(app);
 
   const configuracao = new DocumentBuilder()
