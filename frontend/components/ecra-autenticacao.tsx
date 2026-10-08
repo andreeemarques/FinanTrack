@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAutenticacao } from '@/lib/autenticacao'
+import { useDemora } from '@/lib/usar-demora'
 
 const classeCampo =
   'mt-2 w-full rounded-xl border border-slate-200 px-3 py-2.5 font-normal outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100'
@@ -17,6 +18,7 @@ export default function EcraAutenticacao({ modo }: { modo: 'entrar' | 'registar'
   const [password, setPassword] = useState('')
   const [erro, setErro] = useState<string | null>(null)
   const [aEnviar, setAEnviar] = useState(false)
+  const demorou = useDemora(aEnviar)
 
   // Com sessão iniciada (incluindo logo após entrar ou registar), vai para o painel
   useEffect(() => {
@@ -108,6 +110,12 @@ export default function EcraAutenticacao({ modo }: { modo: 'entrar' | 'registar'
 
           {erro && (
             <p className="rounded-xl bg-rose-50 px-3 py-2.5 text-sm text-rose-700">{erro}</p>
+          )}
+
+          {demorou && (
+            <p className="rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+              O servidor está a acordar, o que pode demorar cerca de 1 minuto. Obrigado pela paciência!
+            </p>
           )}
 
           <button

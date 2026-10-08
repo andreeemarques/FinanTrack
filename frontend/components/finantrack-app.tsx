@@ -12,6 +12,7 @@ import PaginaPoupancas from './pagina-poupancas'
 import PaginaDashboard from './pagina-dashboard'
 import PaginaRelatorios from './pagina-relatorios'
 import PaginaDefinicoes from './pagina-definicoes'
+import { useDemora } from '@/lib/usar-demora'
 
 
 
@@ -41,12 +42,22 @@ export default function FinanTrackApp() {
     if (!carregando && !utilizador) router.replace('/entrar')
   }, [carregando, utilizador, router])
 
+  const demorou = useDemora(carregando)
   const [page, setPage] = useState<Page>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
   const content = useMemo(() => ({ dashboard: <PaginaDashboard onVerMovimentos={() => setPage('movimentos')}/>, movimentos: <PaginaMovimentos/>, orcamento: <PaginaOrcamento/>, poupancas: <PaginaPoupancas/>, relatorios: <PaginaRelatorios/>, definicoes: <PaginaDefinicoes/> }[page]), [page])
 
   if (carregando || !utilizador) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-slate-400">A carregar...</div>
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-2 text-sm text-slate-400">
+        <p>A carregar...</p>
+        {demorou && (
+          <p className="max-w-xs text-center text-xs">
+            O servidor está a acordar, o que pode demorar cerca de 1 minuto.
+          </p>
+        )}
+      </div>
+    )
   }
 
   return <div className="min-h-screen bg-[#f8fafc] text-slate-900"><Sidebar page={page} setPage={setPage} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}/>{mobileOpen && <button className="fixed inset-0 z-30 bg-slate-950/20 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"/>}<main className="min-h-screen lg:pl-64"><div className="mx-auto max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10">{content}</div></main></div>
