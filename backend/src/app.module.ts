@@ -12,6 +12,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ResumoModule } from './resumo/resumo.module';
 import { SaudeController } from './saude/saude.controller';
 import { RaizController } from './saude/raiz.controller';
+import { DemoModule } from './demo/demo.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { RaizController } from './saude/raiz.controller';
     OrcamentosModule,
     ObjetivosModule,
     ResumoModule,
+    DemoModule,
   ],
   controllers: [SaudeController, RaizController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

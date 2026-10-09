@@ -14,6 +14,7 @@ import { Prisma, TipoMovimento } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AtualizarOrcamentoDto } from './dto/atualizar-orcamento.dto';
 import { CriarOrcamentoDto } from './dto/criar-orcamento.dto';
+import { LimitesService } from '../prisma/limites.service';
 
 const INCLUIR_CATEGORIA = {
   categoria: { select: { id: true, nome: true, icone: true, cor: true } },
@@ -32,7 +33,7 @@ const paraResposta = (orcamento: OrcamentoComCategoria) => ({
 
 @Injectable()
 export class OrcamentosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly limites: LimitesService) {}
 
   async listar(utilizadorId: string, mes: string = mesAtual()) {
     const inicio = inicioDoMes(mes);
@@ -84,6 +85,7 @@ export class OrcamentosService {
   }
 
   async criar(utilizadorId: string, dto: CriarOrcamentoDto) {
+    await this.limites.garantirEspaco(utilizadorId, 'orcamentos');
     const categoria = await this.prisma.categoria.findFirst({
       where: { id: dto.categoriaId, utilizadorId },
       select: { id: true },

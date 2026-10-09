@@ -6,6 +6,7 @@ import { AtualizarObjetivoDto } from './dto/atualizar-objetivo.dto';
 import { CriarContribuicaoDto } from './dto/criar-contribuicao.dto';
 import { CriarObjetivoDto } from './dto/criar-objetivo.dto';
 import { preverConclusao } from './previsao';
+import { LimitesService } from '../prisma/limites.service';
 
 
 
@@ -32,7 +33,7 @@ const paraContribuicao = (c: Contribuicao) => ({
 
 @Injectable()
 export class ObjetivosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly limites: LimitesService) {}
 
   async listar(utilizadorId: string) {
     const objetivos = await this.prisma.objetivoPoupanca.findMany({
@@ -64,6 +65,7 @@ export class ObjetivosService {
   }
 
   async criar(utilizadorId: string, dto: CriarObjetivoDto) {
+    await this.limites.garantirEspaco(utilizadorId, 'objetivos');
     if (dto.dataLimite && dto.dataLimite < paraData(new Date())) {
       throw new BadRequestException('A data limite não pode ser anterior a hoje.');
     }
@@ -112,6 +114,7 @@ export class ObjetivosService {
     dto: CriarContribuicaoDto,
   ) {
     await this.garantirObjetivo(id, utilizadorId);
+    await this.limites.garantirEspaco(utilizadorId, 'contribuicoes');
     const contribuicao = await this.prisma.contribuicao.create({
       data: {
         objetivoId: id,

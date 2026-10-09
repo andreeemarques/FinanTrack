@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AtualizarMovimentoDto } from './dto/atualizar-movimento.dto';
 import { CriarMovimentoDto } from './dto/criar-movimento.dto';
 import { ListarMovimentosDto } from './dto/listar-movimentos.dto';
+import { LimitesService } from '../prisma/limites.service';
 
 const INCLUIR_CATEGORIA = {
   categoria: { select: { id: true, nome: true, icone: true, cor: true } },
@@ -25,10 +26,11 @@ const paraResposta = (movimento: MovimentoComCategoria) => ({
 
 @Injectable()
 export class MovimentosService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly limites: LimitesService,) {}
 
   async criar(utilizadorId: string, dto: CriarMovimentoDto) {
     await this.garantirCategoria(dto.categoriaId, utilizadorId);
+    await this.limites.garantirEspaco(utilizadorId, 'movimentos');
 
     const movimento = await this.prisma.movimento.create({
       data: { ...dto, data: new Date(dto.data), utilizadorId },

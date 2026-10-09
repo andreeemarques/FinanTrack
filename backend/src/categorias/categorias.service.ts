@@ -7,10 +7,11 @@ import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AtualizarCategoriaDto } from './dto/atualizar-categoria.dto';
 import { CriarCategoriaDto } from './dto/criar-categoria.dto';
+import { LimitesService } from '../prisma/limites.service';
 
 @Injectable()
 export class CategoriasService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly limites: LimitesService) {}
 
   listar(utilizadorId: string) {
     return this.prisma.categoria.findMany({
@@ -20,6 +21,7 @@ export class CategoriasService {
   }
 
   async criar(utilizadorId: string, dto: CriarCategoriaDto) {
+    await this.limites.garantirEspaco(utilizadorId, 'categorias');
     try {
       return await this.prisma.categoria.create({
         data: { ...dto, utilizadorId },

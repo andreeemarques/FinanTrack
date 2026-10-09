@@ -13,18 +13,12 @@ import { ApagarContaDto } from './dto/apagar-conta.dto';
 import { AtualizarPerfilDto } from './dto/atualizar-perfil.dto';
 import { EntrarDto } from './dto/entrar.dto';
 import { RegistarDto } from './dto/registar.dto';
+import { CATEGORIAS_PADRAO } from './categorias-padrao';
 
-const CATEGORIAS_PADRAO = [
-  'Alimentação',
-  'Habitação',
-  'Transportes',
-  'Entretenimento',
-  'Saúde',
-  'Salário',
-  'Outros',
-];
 
-const CAMPOS_PUBLICOS = { id: true, nome: true, email: true, moeda: true };
+
+
+const CAMPOS_PUBLICOS = { id: true, nome: true, email: true, moeda: true, ehDemo: true };
 
 const MENSAGEM_EMAIL_REPETIDO = 'Já existe uma conta com este email.';
 
@@ -85,9 +79,9 @@ export class AutenticacaoService {
       throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    const { id, nome, email, moeda, versaoToken } = utilizador;
+    const { id, nome, email, moeda, ehDemo, versaoToken } = utilizador;
     return {
-      utilizador: { id, nome, email, moeda },
+      utilizador: { id, nome, email, moeda, ehDemo },
       token: await this.gerarToken({ id, email, versaoToken }),
     };
   }
