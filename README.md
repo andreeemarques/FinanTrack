@@ -114,23 +114,23 @@ finan-track/
 2. **Backend:**
 
 ```bash
-   cd backend
-   pnpm install
-   cp .env.example .env   # no PowerShell: Copy-Item .env.example .env
+cd backend
+pnpm install
+cp .env.example .env   # no PowerShell: Copy-Item .env.example .env
 ```
 
    Edita o `.env` e define o `JWT_SECRET` (mínimo de 32 caracteres):
 
 ```bash
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
    Depois:
 
 ```bash
-   pnpm exec prisma migrate deploy
-   pnpm exec prisma generate
-   pnpm start:dev
+pnpm exec prisma migrate deploy
+pnpm exec prisma generate
+pnpm start:dev
 ```
 
    A API fica em `http://localhost:3001` e a documentação em `http://localhost:3001/documentacao`.
@@ -138,10 +138,10 @@ finan-track/
 3. **Frontend:**
 
 ```bash
-   cd frontend
-   pnpm install
-   cp .env.example .env.local   # no PowerShell: Copy-Item .env.example .env.local
-   pnpm dev
+cd frontend
+pnpm install
+cp .env.example .env.local   # no PowerShell: Copy-Item .env.example .env.local
+pnpm dev
 ```
 
    A aplicação fica em `http://localhost:3000`.
