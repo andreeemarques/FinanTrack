@@ -50,10 +50,13 @@ export default function Introducao() {
             Acompanha receitas e despesas, define orçamentos e alcança os teus objetivos de poupança num só lugar.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/registar" className="rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-              Começar agora
+            <Link href="/demo" className="rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+              Experimentar a demonstração
             </Link>
-            <Link href="/entrar" className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+            <Link href="/registar" className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+              Criar conta
+            </Link>
+            <Link href="/entrar" className="rounded-xl px-6 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               Já tenho conta
             </Link>
           </div>

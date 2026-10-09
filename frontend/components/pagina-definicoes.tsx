@@ -17,6 +17,32 @@ function Mensagem({ mensagem }: { mensagem: MensagemEstado }) {
 }
 
 export default function PaginaDefinicoes() {
+  const { utilizador, sair } = useAutenticacao()
+
+  if (utilizador?.ehDemo) {
+    return (
+      <>
+        <Header title="Definições" subtitle="Gere a tua conta no FinanTrack." onMenu={() => {}} />
+        <Card className="max-w-2xl p-6">
+          <h2 className="font-semibold text-slate-900">Conta de demonstração</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Esta conta é temporária e tem dados de exemplo. É apagada automaticamente ao fim de 24 horas, por isso não
+            tem definições para alterar. Podes mexer à vontade nos movimentos, orçamentos e objetivos.
+          </p>
+          <button
+            onClick={() => {
+              sair()
+              window.location.assign('/registar') // recarrega a página, já sem sessão
+            }}
+            className="mt-6 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            Criar uma conta a sério
+          </button>
+        </Card>
+      </>
+    )
+  }
+
   return (
     <>
       <Header title="Definições" subtitle="Gere a tua conta no FinanTrack." onMenu={() => {}} />

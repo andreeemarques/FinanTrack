@@ -136,6 +136,13 @@ export default function EcraAutenticacao({ modo }: { modo: 'entrar' | 'registar'
             {modo === 'entrar' ? 'Criar conta' : 'Entrar'}
           </Link>
         </p>
+
+        <p className="mt-3 text-center text-sm text-slate-500">
+          ou{' '}
+          <Link href="/demo" className="font-semibold text-emerald-700 hover:text-emerald-800">
+            experimentar com dados de demonstração
+          </Link>
+        </p>
       </div>
     </div>
   )

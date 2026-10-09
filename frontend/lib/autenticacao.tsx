@@ -14,6 +14,7 @@ import type { RespostaAutenticacao, Utilizador } from './tipos'
 interface ContextoAutenticacao {
   utilizador: Utilizador | null
   carregando: boolean
+  entrarDemo: () => Promise<void>
   entrar: (email: string, password: string) => Promise<void>
   registar: (nome: string, email: string, password: string) => Promise<void>
   sair: () => void
@@ -80,6 +81,11 @@ export function AutenticacaoProvider({ children }: { children: React.ReactNode }
     [iniciarSessao],
   )
 
+  const entrarDemo = useCallback(async () => {
+    const resposta = await pedido<RespostaAutenticacao>('/demo/sessao', { metodo: 'POST' })
+    iniciarSessao(resposta)
+  }, [iniciarSessao])
+
   const sair = useCallback(() => {
     removerToken()
     queryClient.clear()
@@ -87,8 +93,8 @@ export function AutenticacaoProvider({ children }: { children: React.ReactNode }
   }, [queryClient])
 
   const valor = useMemo(
-    () => ({ utilizador, carregando, entrar, registar, sair, atualizarUtilizador: setUtilizador }),
-    [utilizador, carregando, entrar, registar, sair],
+    () => ({ utilizador, carregando, entrar, registar, entrarDemo, sair, atualizarUtilizador: setUtilizador }),
+    [utilizador, carregando, entrar, registar, entrarDemo, sair],
   )
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>

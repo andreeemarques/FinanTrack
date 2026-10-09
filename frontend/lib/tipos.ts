@@ -3,6 +3,7 @@ export interface Utilizador {
   nome: string
   email: string
   moeda: string
+  ehDemo: boolean
 }
 
 export interface RespostaAutenticacao {
