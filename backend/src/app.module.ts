@@ -11,6 +11,7 @@ import { OrcamentosModule } from './orcamentos/orcamentos.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ResumoModule } from './resumo/resumo.module';
 import { SaudeController } from './saude/saude.controller';
+import { RaizController } from './saude/raiz.controller';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { SaudeController } from './saude/saude.controller';
     ObjetivosModule,
     ResumoModule,
   ],
-  controllers: [SaudeController],
+  controllers: [SaudeController, RaizController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
