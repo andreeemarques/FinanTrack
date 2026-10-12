@@ -2,21 +2,15 @@
 
 import { useQueryClient } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import {
-  EVENTO_SESSAO_EXPIRADA,
-  guardarToken,
-  obterToken,
-  pedido,
-  removerToken,
-} from './api'
+import { EVENTO_SESSAO_EXPIRADA, guardarToken, pedido, removerToken, renovarSessao } from './api'
 import type { RespostaAutenticacao, Utilizador } from './tipos'
 
 interface ContextoAutenticacao {
   utilizador: Utilizador | null
   carregando: boolean
-  entrarDemo: () => Promise<void>
   entrar: (email: string, password: string) => Promise<void>
   registar: (nome: string, email: string, password: string) => Promise<void>
+  entrarDemo: () => Promise<void>
   sair: () => void
   atualizarUtilizador: (utilizador: Utilizador) => void
 }
@@ -28,14 +22,19 @@ export function AutenticacaoProvider({ children }: { children: React.ReactNode }
   const [utilizador, setUtilizador] = useState<Utilizador | null>(null)
   const [carregando, setCarregando] = useState(true)
 
-  // Ao abrir a aplicação, se houver token guardado, confirma-o com a API
+  // Ao abrir a aplicação, o cookie da sessão é trocado por um token de acesso
   useEffect(() => {
-    if (!obterToken()) {
-      setCarregando(false)
-      return
+    try {
+      // Versões antigas guardavam o token no localStorage: remove-o
+      localStorage.removeItem('finantrack_token')
+    } catch {
+      // o armazenamento pode estar indisponível
     }
-    pedido<Utilizador>('/autenticacao/eu')
-      .then(setUtilizador)
+
+    renovarSessao()
+      .then((resposta) => {
+        if (resposta) setUtilizador(resposta.utilizador)
+      })
       .catch(() => undefined)
       .finally(() => setCarregando(false))
   }, [])
@@ -87,6 +86,8 @@ export function AutenticacaoProvider({ children }: { children: React.ReactNode }
   }, [iniciarSessao])
 
   const sair = useCallback(() => {
+    // Termina a sessão no servidor (revoga-a e apaga o cookie) e limpa o estado local
+    pedido<void>('/autenticacao/sair', { metodo: 'POST' }).catch(() => undefined)
     removerToken()
     queryClient.clear()
     setUtilizador(null)
