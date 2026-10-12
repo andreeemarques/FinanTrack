@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {BarChart3, CreditCard, LayoutDashboard, LogOut, PiggyBank,Settings, Wallet, X} from 'lucide-react'
+import {BarChart3, CreditCard, LayoutDashboard, LogOut, PiggyBank,Settings, Wallet, X, Tags} from 'lucide-react'
 import { useAutenticacao } from '@/lib/autenticacao'
 import { Card, Header } from './ui-comum'
 import MovimentosRecentes from './movimentos-recentes'
@@ -13,10 +13,11 @@ import PaginaDashboard from './pagina-dashboard'
 import PaginaRelatorios from './pagina-relatorios'
 import PaginaDefinicoes from './pagina-definicoes'
 import { useDemora } from '@/lib/usar-demora'
+import PaginaCategorias from './pagina-categorias'
 
 
 
-type Page = 'dashboard' | 'movimentos' | 'orcamento' | 'poupancas' | 'relatorios' | 'definicoes'
+type Page = 'dashboard' | 'movimentos' | 'orcamento' | 'poupancas' | 'categorias' | 'relatorios' | 'definicoes'
 
 function Sidebar({ page, setPage, mobileOpen, setMobileOpen }: { page: Page; setPage: (p: Page) => void; mobileOpen: boolean; setMobileOpen: (v: boolean) => void }) {
   const { utilizador, sair } = useAutenticacao()
@@ -27,7 +28,7 @@ function Sidebar({ page, setPage, mobileOpen, setMobileOpen }: { page: Page; set
     .join('')
     .toUpperCase()
   const items: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'movimentos', label: 'Movimentos', icon: CreditCard }, { id: 'orcamento', label: 'Orçamento', icon: Wallet }, { id: 'poupancas', label: 'Poupanças', icon: PiggyBank }, { id: 'relatorios', label: 'Relatórios', icon: BarChart3 }, { id: 'definicoes', label: 'Definições', icon: Settings },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, { id: 'movimentos', label: 'Movimentos', icon: CreditCard }, { id: 'orcamento', label: 'Orçamento', icon: Wallet }, { id: 'poupancas', label: 'Poupanças', icon: PiggyBank }, { id: 'categorias', label: 'Categorias', icon: Tags }, { id: 'relatorios', label: 'Relatórios', icon: BarChart3 }, { id: 'definicoes', label: 'Definições', icon: Settings },
   ]
   return <aside className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white px-4 py-6 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
     <div className="flex items-center justify-between px-3"><div className="flex items-center gap-2.5"><div className="flex size-9 items-center justify-center rounded-xl bg-slate-950 text-white"><Wallet className="size-5" /></div><span className="text-lg font-bold tracking-tight text-slate-950">Finan<span className="text-emerald-600">Track</span></span></div><button onClick={() => setMobileOpen(false)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Fechar menu"><X className="size-5" /></button></div>
@@ -45,7 +46,7 @@ export default function FinanTrackApp() {
   const demorou = useDemora(carregando)
   const [page, setPage] = useState<Page>('dashboard')
   const [mobileOpen, setMobileOpen] = useState(false)
-  const content = useMemo(() => ({ dashboard: <PaginaDashboard onVerMovimentos={() => setPage('movimentos')}/>, movimentos: <PaginaMovimentos/>, orcamento: <PaginaOrcamento/>, poupancas: <PaginaPoupancas/>, relatorios: <PaginaRelatorios/>, definicoes: <PaginaDefinicoes/> }[page]), [page])
+  const content = useMemo(() => ({ dashboard: <PaginaDashboard onVerMovimentos={() => setPage('movimentos')}/>, movimentos: <PaginaMovimentos/>, orcamento: <PaginaOrcamento/>, poupancas: <PaginaPoupancas/>, categorias: <PaginaCategorias/>, relatorios: <PaginaRelatorios/>, definicoes: <PaginaDefinicoes/> }[page]), [page])
 
   if (carregando || !utilizador) {
     return (

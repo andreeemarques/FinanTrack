@@ -20,6 +20,7 @@ Projeto de portefólio, com frontend, API, base de dados, testes automáticos, C
 
 ## Funcionalidades
 
+- **Categorias:** criar, renomear, colorir e apagar categorias, com o número de movimentos de cada uma.
 - **Movimentos:** criar, editar e apagar receitas e despesas, com pesquisa, filtros por tipo e categoria, e paginação.
 - **Orçamentos mensais** por categoria, com o gasto calculado em tempo real a partir dos movimentos, barra de progresso e aviso quando o limite é ultrapassado.
 - **Objetivos de poupança** com histórico de contribuições e **previsão de conclusão** ao ritmo atual.
@@ -99,7 +100,7 @@ finan-track/
 - O token fica no `localStorage`, o que o expõe a ataques XSS. O passo seguinte é um *access token* curto com *refresh token* em cookie `httpOnly`.
 - Não há verificação de email nem recuperação de password, e o registo é aberto (só limitado por IP).
 - A API gratuita adormece (ver a nota acima).
-- Só existe a moeda euro, e o frontend ainda não permite gerir categorias (a API já suporta).
+- Só existe a moeda euro.
 
 ## Correr localmente
 
@@ -108,7 +109,7 @@ finan-track/
 1. **Base de dados** (na raiz do projeto):
 
 ```bash
-   docker compose up -d
+docker compose up -d
 ```
 
 2. **Backend:**

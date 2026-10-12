@@ -37,6 +37,11 @@ export interface Categoria {
   cor: string | null
 }
 
+// A lista de categorias inclui o número de movimentos de cada uma
+export interface CategoriaComTotal extends Categoria {
+  totalMovimentos: number
+}
+
 export interface Movimento {
   id: string
   tipo: TipoMovimento

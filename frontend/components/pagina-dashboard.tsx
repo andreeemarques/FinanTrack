@@ -8,8 +8,9 @@ import { formatarEuros, formatarMesCurto, formatarPercentagem, mesAtual } from '
 import { useDashboard } from '@/lib/resumo'
 import MovimentosRecentes from './movimentos-recentes'
 import { Card, Estatistica, Header, SeletorMes } from './ui-comum'
+import { PALETA_CATEGORIAS as PALETA } from '@/lib/cores'
 
-const PALETA = ['#f59e0b', '#0ea5e9', '#8b5cf6', '#ec4899', '#10b981', '#94a3b8', '#f43f5e', '#14b8a6']
+
 
 function saudacao() {
   const hora = new Date().getHours()
