@@ -13,11 +13,16 @@ import { LimitesService } from '../prisma/limites.service';
 export class CategoriasService {
   constructor(private readonly prisma: PrismaService, private readonly limites: LimitesService) {}
 
-  listar(utilizadorId: string) {
-    return this.prisma.categoria.findMany({
+  async listar(utilizadorId: string) {
+    const categorias = await this.prisma.categoria.findMany({
       where: { utilizadorId },
       orderBy: { nome: 'asc' },
+      include: { _count: { select: { movimentos: true } } },
     });
+    return categorias.map(({ _count, ...categoria }) => ({
+      ...categoria,
+      totalMovimentos: _count.movimentos,
+    }));
   }
 
   async criar(utilizadorId: string, dto: CriarCategoriaDto) {

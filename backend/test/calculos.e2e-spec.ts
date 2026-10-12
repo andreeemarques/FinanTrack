@@ -158,4 +158,24 @@ describe('Cálculos de resumo e orçamentos (e2e)', () => {
       expect(body.taxaPoupancaPercentagem).toBeNull();
     });
   });
+  
+  describe('Categorias', () => {
+    type CategoriaComTotal = { id: string; totalMovimentos: number };
+
+    it('conta os movimentos de cada categoria', async () => {
+      const { body } = await http().get('/categorias').set(autorizacao(token)).expect(200);
+      const lista = body as CategoriaComTotal[];
+
+      expect(lista.find((c) => c.id === categoriaId)?.totalMovimentos).toBe(5);
+      expect(lista.filter((c) => c.totalMovimentos === 0)).toHaveLength(6);
+    });
+
+    it('não deixa apagar uma categoria com movimentos (409), mas apaga uma vazia (204)', async () => {
+      const { body } = await http().get('/categorias').set(autorizacao(token)).expect(200);
+      const vazia = (body as CategoriaComTotal[]).find((c) => c.totalMovimentos === 0);
+
+      await http().delete(`/categorias/${categoriaId}`).set(autorizacao(token)).expect(409);
+      await http().delete(`/categorias/${vazia?.id}`).set(autorizacao(token)).expect(204);
+    });
+  });
 });
