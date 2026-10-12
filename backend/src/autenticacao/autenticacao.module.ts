@@ -11,11 +11,13 @@ import { AutenticacaoService } from './autenticacao.service';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        // Token de acesso curto (15 minutos); a sessão longa está no cookie de renovação
+        signOptions: { expiresIn: Number(config.get('JWT_EXPIRES_SEGUNDOS')) || 900 },
       }),
     }),
   ],
   controllers: [AutenticacaoController],
   providers: [AutenticacaoService],
+  exports: [AutenticacaoService],
 })
 export class AutenticacaoModule {}

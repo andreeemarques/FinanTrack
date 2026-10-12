@@ -6,17 +6,22 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash, hashSync } from 'bcryptjs';
+import { randomUUID } from 'node:crypto';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CATEGORIAS_PADRAO } from './categorias-padrao';
 import { AlterarPasswordDto } from './dto/alterar-password.dto';
 import { ApagarContaDto } from './dto/apagar-conta.dto';
 import { AtualizarPerfilDto } from './dto/atualizar-perfil.dto';
 import { EntrarDto } from './dto/entrar.dto';
 import { RegistarDto } from './dto/registar.dto';
-import { CATEGORIAS_PADRAO } from './categorias-padrao';
-
-
-
+import {
+  DURACAO_SESSAO_MS,
+  RETENCAO_ROTADAS_MS,
+  TOLERANCIA_ROTACAO_MS,
+  gerarRefreshToken,
+  hashRefresh,
+} from './sessao';
 
 const CAMPOS_PUBLICOS = { id: true, nome: true, email: true, moeda: true, ehDemo: true };
 
@@ -60,10 +65,12 @@ export class AutenticacaoService {
     });
 
     const { versaoToken, ...utilizador } = criado;
-    return {
-      utilizador,
-      token: await this.gerarToken({ id: utilizador.id, email: utilizador.email, versaoToken }),
-    };
+    const sessao = await this.iniciarSessao({
+      id: utilizador.id,
+      email: utilizador.email,
+      versaoToken,
+    });
+    return { utilizador, ...sessao };
   }
 
   async entrar(dto: EntrarDto) {
@@ -80,10 +87,58 @@ export class AutenticacaoService {
     }
 
     const { id, nome, email, moeda, ehDemo, versaoToken } = utilizador;
-    return {
-      utilizador: { id, nome, email, moeda, ehDemo },
-      token: await this.gerarToken({ id, email, versaoToken }),
-    };
+    const sessao = await this.iniciarSessao({ id, email, versaoToken });
+    return { utilizador: { id, nome, email, moeda, ehDemo }, ...sessao };
+  }
+
+  // Troca um refresh token por um token de acesso novo e um refresh token novo (rotação)
+  async renovar(refreshToken?: string) {
+    if (!refreshToken) throw new UnauthorizedException();
+
+    const agora = new Date();
+    const sessao = await this.prisma.sessao.findUnique({
+      where: { hashToken: hashRefresh(refreshToken) },
+      include: { utilizador: { select: { ...CAMPOS_PUBLICOS, versaoToken: true } } },
+    });
+    if (!sessao || sessao.expiraEm <= agora) throw new UnauthorizedException();
+
+    if (sessao.rodadaEm) {
+      const passou = agora.getTime() - sessao.rodadaEm.getTime();
+      if (passou > TOLERANCIA_ROTACAO_MS) {
+        // Um token já trocado foi usado outra vez: pode ter sido roubado.
+        // Termina a sessão toda (o token novo da mesma cadeia deixa de funcionar também).
+        await this.prisma.sessao.deleteMany({ where: { familiaId: sessao.familiaId } });
+        throw new UnauthorizedException();
+      }
+      // Dentro da tolerância: pedidos simultâneos legítimos (por exemplo, dois separadores)
+    } else {
+      // Condicional e atómico: se outro pedido já trocou este token, não faz nada
+      await this.prisma.sessao.updateMany({
+        where: { id: sessao.id, rodadaEm: null },
+        data: { rodadaEm: agora },
+      });
+    }
+
+    const { versaoToken, ...utilizador } = sessao.utilizador;
+    const novos = await this.iniciarSessao(
+      { id: utilizador.id, email: utilizador.email, versaoToken },
+      sessao.familiaId,
+    );
+
+    await this.limparSessoesAntigas(agora);
+    return { utilizador, ...novos };
+  }
+
+  // Termina a sessão do dispositivo (a cadeia de tokens a que o cookie pertence)
+  async sair(refreshToken?: string) {
+    if (!refreshToken) return;
+    const sessao = await this.prisma.sessao.findUnique({
+      where: { hashToken: hashRefresh(refreshToken) },
+      select: { familiaId: true },
+    });
+    if (sessao) {
+      await this.prisma.sessao.deleteMany({ where: { familiaId: sessao.familiaId } });
+    }
   }
 
   async perfil(id: string) {
@@ -121,8 +176,8 @@ export class AutenticacaoService {
     }
   }
 
-  // Sobe a versão do token: as outras sessões deixam de funcionar.
-  // Devolve um token novo para a sessão atual continuar a funcionar.
+  // Sobe a versão do token (os tokens de acesso antigos deixam de valer) e termina todas
+  // as sessões, em todos os dispositivos. Abre uma sessão nova só para este.
   async alterarPassword(id: string, dto: AlterarPasswordDto) {
     const utilizador = await this.obterUtilizador(id);
     await this.confirmarPassword(utilizador.hashPassword, dto.passwordAtual);
@@ -136,7 +191,8 @@ export class AutenticacaoService {
       select: { id: true, email: true, versaoToken: true },
     });
 
-    return { token: await this.gerarToken(atualizado) };
+    await this.prisma.sessao.deleteMany({ where: { utilizadorId: id } });
+    return this.iniciarSessao(atualizado);
   }
 
   async apagarConta(id: string, dto: ApagarContaDto) {
@@ -145,11 +201,38 @@ export class AutenticacaoService {
 
     // Os movimentos apagam-se primeiro: a ligação movimento → categoria é RESTRICT,
     // e se a base de dados tentasse apagar as categorias antes dos movimentos, falharia.
-    // O resto (categorias, orçamentos, objetivos e contribuições) cai em cascata.
+    // O resto (categorias, orçamentos, objetivos, contribuições e sessões) cai em cascata.
     await this.prisma.$transaction([
       this.prisma.movimento.deleteMany({ where: { utilizadorId: id } }),
       this.prisma.utilizador.delete({ where: { id } }),
     ]);
+  }
+
+  // Cria uma sessão nova (ou continua uma família, na rotação) e devolve os dois tokens.
+  // O refresh token só existe aqui em claro: na base de dados fica apenas o hash.
+  async iniciarSessao(utilizador: DadosToken, familiaId: string = randomUUID()) {
+    const refreshToken = gerarRefreshToken();
+    await this.prisma.sessao.create({
+      data: {
+        utilizadorId: utilizador.id,
+        familiaId,
+        hashToken: hashRefresh(refreshToken),
+        expiraEm: new Date(Date.now() + DURACAO_SESSAO_MS),
+      },
+    });
+    return { token: await this.gerarToken(utilizador), refreshToken };
+  }
+
+  // Apaga as sessões expiradas e os tokens trocados há mais de 24 horas
+  private limparSessoesAntigas(agora: Date) {
+    return this.prisma.sessao.deleteMany({
+      where: {
+        OR: [
+          { expiraEm: { lt: agora } },
+          { rodadaEm: { lt: new Date(agora.getTime() - RETENCAO_ROTADAS_MS) } },
+        ],
+      },
+    });
   }
 
   private async obterUtilizador(id: string) {

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { AutenticacaoService } from '../autenticacao/autenticacao.service';
 import { hash } from 'bcryptjs';
 import { randomBytes } from 'node:crypto';
 import { CATEGORIAS_PADRAO } from '../autenticacao/categorias-padrao';
@@ -19,7 +19,7 @@ function maximoDeDemosAtivas() {
 export class DemoService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly autenticacao: AutenticacaoService,
   ) {}
 
   async criarSessao() {
@@ -54,8 +54,8 @@ export class DemoService {
     await this.preencherDados(utilizador.id);
 
     const { versaoToken, ...publico } = utilizador;
-    const token = await this.jwt.signAsync({ sub: utilizador.id, email, v: versaoToken });
-    return { utilizador: publico, token };
+    const sessao = await this.autenticacao.iniciarSessao({ id: utilizador.id, email, versaoToken });
+    return { utilizador: publico, ...sessao };
   }
 
   private async preencherDados(utilizadorId: string) {

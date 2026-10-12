@@ -42,6 +42,7 @@ model Utilizador {
   ehDemo       Boolean  @default(false) @map("eh_demo")
   criadoEm     DateTime @default(now()) @map("criado_em")
   atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  sessoes      Sessao[]
 
   categorias Categoria[]
   movimentos Movimento[]
@@ -127,4 +128,23 @@ model Contribuicao {
 
   @@index([objetivoId])
   @@map("contribuicoes")
+}
+
+model Sessao {
+  id           String    @id @default(uuid()) @db.Uuid
+  utilizadorId String    @map("utilizador_id") @db.Uuid
+  // Todos os tokens trocados em cadeia a partir de um login partilham a mesma família
+  familiaId    String    @map("familia_id") @db.Uuid
+  hashToken    String    @unique @map("hash_token")
+  expiraEm     DateTime  @map("expira_em")
+  // Preenchido quando o token é trocado por um novo
+  rodadaEm     DateTime? @map("rodada_em")
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+
+  utilizador Utilizador @relation(fields: [utilizadorId], references: [id], onDelete: Cascade)
+
+  @@index([utilizadorId])
+  @@index([familiaId])
+  @@index([expiraEm])
+  @@map("sessoes")
 }
