@@ -8,7 +8,7 @@ Projeto de portefólio, com frontend, API, base de dados, testes automáticos, C
 
 **🔗 [Experimentar a demonstração](https://finan-track-chi.vercel.app/demo)** (sem registo) · **📖 [Documentação da API](https://finantrack-2wje.onrender.com/documentacao)**
 
-> ⏳ **Nota:** a API corre num plano gratuito que adormece após 15 minutos sem uso. O primeiro pedido pode demorar cerca de 1 minuto a acordar, e a aplicação avisa quando isso acontece.
+> ⏳ **Nota:** a API corre num plano gratuito que adormece após 15 minutos sem uso. O site acorda-a assim que abre, mas o primeiro pedido pode ainda demorar até cerca de 1 minuto, e a aplicação avisa quando isso acontece.
 
 ## Capturas de ecrã
 
@@ -47,7 +47,7 @@ A interface base foi gerada com o v0 da Vercel; a partir daí, foi refatorada em
 
 ```
 Browser ──► Frontend (Next.js, Vercel)
-               │  HTTPS + JWT (Bearer)
+               │  HTTPS, via proxy /api (cookie de sessão httpOnly + token de acesso)
                ▼
             API REST (NestJS, Render) ──► PostgreSQL (Neon)
                │
@@ -84,12 +84,13 @@ finan-track/
 - **Testes contra uma base de dados real.** Os testes de integração usam um PostgreSQL de teste (e recusam correr noutra base de dados), porque é aí que estão os riscos: queries, relações e isolamento. Incluem as fronteiras de mês (último e primeiro dia).
 - **Vitest em vez de Jest.** Os pacotes do Nest 12 são só ESM, e o Jest não os consegue carregar.
 - **Nomes em português** no código, na API e na base de dados.
+- **Proxy `/api` no frontend.** O browser fala sempre com o próprio site, que reencaminha para a API. Assim o cookie de sessão é do mesmo site (os browsers bloqueiam cada vez mais os cookies de terceiros) e dispensa-se o CORS. As respostas da API levam `Cache-Control: no-store`, para o proxy nunca guardar dados pessoais, e o site acorda a API ao abrir.
 
 ## Segurança
 
 - Passwords com hash (bcrypt, custo 12) e mensagens de login genéricas, com o tempo de resposta igualado para não revelar que emails existem.
 - **Isolamento entre utilizadores:** cada pedido é filtrado pelo utilizador autenticado, e o que pertence a outro dá `404`. Há testes automáticos que verificam isto em todas as áreas.
-- Tokens JWT com **versão**: alterar a password invalida as outras sessões, e o guard confirma que a conta ainda existe (um token de uma conta apagada deixa de funcionar).
+- **Sessões com refresh token:** o token de acesso dura 15 minutos e vive só em memória; a sessão longa (30 dias) fica num cookie `httpOnly`, `Secure` e `SameSite=Strict`, que o JavaScript não consegue ler. O refresh token é aleatório, guardado na base de dados só como hash, e **roda a cada uso**: reutilizar um token já trocado termina a sessão (deteção de roubo). Mudar a password termina as sessões dos outros dispositivos, e o servidor confirma a cada pedido que a conta ainda existe e que o token não foi invalidado.
 - Alterar o email, a password ou apagar a conta exige a **password atual**.
 - Validação rigorosa dos dados (campos desconhecidos são rejeitados), **rate limiting** (mais apertado nas rotas de autenticação), cabeçalhos de segurança (Helmet), CORS limitado ao frontend e validação das variáveis de ambiente no arranque (a API recusa arrancar com um `JWT_SECRET` fraco).
 - **Quotas por conta** e limites nas contas de demonstração (por IP, por hora e no total), para ninguém encher a base de dados.
@@ -97,7 +98,6 @@ finan-track/
 
 ## Limitações conhecidas
 
-- O token fica no `localStorage`, o que o expõe a ataques XSS. O passo seguinte é um *access token* curto com *refresh token* em cookie `httpOnly`.
 - Não há verificação de email nem recuperação de password, e o registo é aberto (só limitado por IP).
 - A API gratuita adormece (ver a nota acima).
 - Só existe a moeda euro.
@@ -157,7 +157,10 @@ pnpm dev
 | `PORT` | backend | Porta da API (por omissão, 3001) |
 | `DEMO_ATIVA` | backend | `true` para ligar as contas de demonstração |
 | `DEMO_MAX_ATIVAS` | backend | Máximo de demonstrações ativas ao mesmo tempo (por omissão, 100) |
-| `NEXT_PUBLIC_API_URL` | frontend | Endereço da API |
+| `API_URL` | frontend | Endereço da API (usado pelo proxy do Next.js, que reencaminha `/api`) |
+| `TRUST_PROXY_HOPS` | backend | Número de proxies à frente da API (em produção, por omissão, 1) |
+| `NODE_ENV` | backend | `production` em produção (ativa o cookie `Secure` e os proxies de confiança) |
+| `JWT_EXPIRES_SEGUNDOS` | backend | Duração do token de acesso, em segundos (opcional; por omissão, 900) |
 
 ## Testes
 
@@ -171,7 +174,7 @@ Depois, dentro de `backend/`:
 
 ```bash
 pnpm test        # testes unitários
-pnpm test:e2e    # testes de integração (autenticação, isolamento entre utilizadores, cálculos, demonstração e limites)
+pnpm test:e2e    # testes de integração (autenticação, sessões, isolamento entre utilizadores, cálculos, demonstração e limites)
 ```
 
 ## API
@@ -180,7 +183,7 @@ Documentação interativa em [`/documentacao`](https://finantrack-2wje.onrender.
 
 | Área | Rotas |
 |---|---|
-| Autenticação | `POST /autenticacao/registar`, `POST /autenticacao/entrar`, `GET` e `PATCH /autenticacao/eu`, `POST /autenticacao/alterar-password`, `POST /autenticacao/apagar-conta` |
+| Autenticação | `POST /autenticacao/registar`, `POST /autenticacao/entrar`, `POST /autenticacao/renovar`, `POST /autenticacao/sair`, `GET` e `PATCH /autenticacao/eu`, `POST /autenticacao/alterar-password`, `POST /autenticacao/apagar-conta` |
 | Categorias | `GET`, `POST /categorias`, `PATCH`, `DELETE /categorias/:id` |
 | Movimentos | `GET`, `POST /movimentos`, `GET`, `PATCH`, `DELETE /movimentos/:id` |
 | Orçamentos | `GET /orcamentos?mes=AAAA-MM`, `POST /orcamentos`, `PATCH`, `DELETE /orcamentos/:id` |
