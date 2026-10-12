@@ -1,4 +1,4 @@
-const URL_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const URL_API = '/api'
 const CHAVE_TOKEN = 'finantrack_token'
 
 export const EVENTO_SESSAO_EXPIRADA = 'finantrack:sessao-expirada'
