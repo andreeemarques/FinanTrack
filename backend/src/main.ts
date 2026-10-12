@@ -7,9 +7,14 @@ import { configurarApp } from './configurar-app';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Em produção a API fica atrás do proxy da plataforma: confia nele para ver o IP real
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
+  // Atrás de proxies (Vercel e a plataforma da API), o IP real do utilizador vem no cabeçalho
+  // X-Forwarded-For. TRUST_PROXY_HOPS diz quantos proxies são de confiança; em produção,
+  // por omissão, 1. O valor certo descobre-se com o endpoint /saude/ip (ver README).
+  const saltos = Number(
+    process.env.TRUST_PROXY_HOPS ?? (process.env.NODE_ENV === 'production' ? 1 : 0),
+  );
+  if (saltos > 0) {
+    app.set('trust proxy', saltos);
   }
 
   configurarApp(app);

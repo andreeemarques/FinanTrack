@@ -65,6 +65,14 @@ describe('Autenticação (e2e)', () => {
     await http().get('/autenticacao/eu').set(autorizacao('token-invalido')).expect(401);
   });
 
+  it('as respostas nunca ficam em cache (no-store)', async () => {
+    const resposta = await http().get('/saude').expect(200);
+    expect(resposta.headers['cache-control']).toBe('no-store');
+
+    const protegida = await http().get('/autenticacao/eu').expect(401);
+    expect(protegida.headers['cache-control']).toBe('no-store');
+  });
+
   it('alterar a password invalida os tokens antigos e devolve um token novo', async () => {
     const { token: antigo } = await registarUtilizador(app, 'Ana', 'ana@example.com');
 

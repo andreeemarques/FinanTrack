@@ -4,6 +4,12 @@ import helmet from 'helmet';
 
 // Configuração partilhada entre a aplicação real (main.ts) e os testes e2e
 export function configurarApp(app: INestApplication) {
+  // As respostas da API são pessoais: nunca devem ficar em cache, nem no browser nem num proxy
+  app.use((_pedido: Request, resposta: Response, seguinte: NextFunction) => {
+    resposta.setHeader('Cache-Control', 'no-store');
+    seguinte();
+  });
+  
   // O Swagger UI usa scripts embutidos que a política de segurança do Helmet bloqueia,
   // por isso a documentação tem uma configuração própria (o resto da API mantém o Helmet completo)
   const helmetPadrao = helmet();
